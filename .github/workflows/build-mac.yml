@@ -5,6 +5,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   mac:
     runs-on: macos-15
@@ -58,3 +61,17 @@ jobs:
           name: Chordwright-mac
           path: dist/Chordwright-mac.zip
           retention-days: 30
+
+      # Every build on main becomes a release. The newest is always at
+      # https://github.com/<you>/<repo>/releases/latest/download/Chordwright-mac.zip
+      - name: Publish release
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="build-${{ github.run_number }}"
+          gh release create "$TAG" dist/Chordwright-mac.zip \
+            --target "${{ github.sha }}" \
+            --title "Chordwright build ${{ github.run_number }}" \
+            --notes "Unzip, then follow INSTALL.txt inside. Load the VST3 in Studio One." \
+            --latest

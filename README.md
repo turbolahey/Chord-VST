@@ -60,7 +60,7 @@ Drag the box at the bottom into any Studio One track to drop a MIDI clip of the 
 
 ## Building
 
-GitHub builds the plugin on every push (`.github/workflows/build-mac.yml`): a universal binary for Apple Silicon and Intel, signed for local use, checked by the engine tests and pluginval. Download it from the **Actions** tab, open the latest run, and grab **Chordwright-mac** under Artifacts.
+GitHub builds the plugin on every push (`.github/workflows/build-mac.yml`): a universal binary for Apple Silicon and Intel, signed for local use, checked by the engine tests, pluginval and Apple's AU validator. Each build on main is published as a release, so the newest plugin is always at https://github.com/turbolahey/Chord-VST/releases/latest/download/Chordwright-mac.zip
 
 To build on a Mac yourself, install Xcode and CMake, then:
 
