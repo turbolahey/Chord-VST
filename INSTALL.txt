@@ -1,0 +1,28 @@
+Chordwright for Mac
+===================
+
+1. Unzip Chordwright-mac.zip so you have a folder called Chordwright-mac in Downloads.
+
+2. Open Terminal (Cmd+Space, type Terminal) and paste these lines. It asks for your Mac password.
+
+   cd ~/Downloads/Chordwright-mac
+   sudo mkdir -p /Library/Audio/Plug-Ins/VST3 /Library/Audio/Plug-Ins/Components
+   sudo cp -R Chordwright.vst3 /Library/Audio/Plug-Ins/VST3/
+   sudo cp -R Chordwright.component /Library/Audio/Plug-Ins/Components/
+   sudo xattr -dr com.apple.quarantine /Library/Audio/Plug-Ins/VST3/Chordwright.vst3 /Library/Audio/Plug-Ins/Components/Chordwright.component
+
+   The last line tells macOS the plugin is safe to load. Without it, macOS blocks
+   plugins downloaded from the internet that are not signed by a paid developer account.
+
+3. Restart Studio One. Chordwright shows up under Instruments, made by "Kristian".
+   Use the VST3 version. Studio One only passes MIDI out of VST3 instruments.
+
+Routing in Studio One
+---------------------
+1. Drag Chordwright onto the arrange view. That makes an instrument track. Your MIDI
+   keyboard plays into this track.
+2. Add your Arturia or Native Instruments sound on a second instrument track.
+3. On that second track, set its input to Chordwright instead of your keyboard.
+4. Turn on monitoring on both tracks. Arm the second track to record the chords as MIDI.
+
+Play a key on your keyboard and you hear the chord through your synth.

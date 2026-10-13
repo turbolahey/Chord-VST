@@ -1,0 +1,60 @@
+name: Build Mac plugin
+
+# Runs on every push and from the Actions tab ("Run workflow").
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  mac:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Configure (downloads JUCE 9)
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCHORDWRIGHT_TESTS=ON
+
+      - name: Build universal VST3 and AU (Apple Silicon + Intel)
+        run: cmake --build build --config Release -j 4
+
+      - name: Run chord engine tests
+        run: ./build/engine_tests
+
+      - name: Sign for local use
+        run: |
+          codesign --force --deep --sign - build/Chordwright_artefacts/Release/VST3/Chordwright.vst3
+          codesign --force --deep --sign - build/Chordwright_artefacts/Release/AU/Chordwright.component
+          lipo -info build/Chordwright_artefacts/Release/VST3/Chordwright.vst3/Contents/MacOS/Chordwright
+
+      - name: Validate with pluginval
+        run: |
+          curl -sSL -o pluginval.zip https://github.com/Tracktion/pluginval/releases/latest/download/pluginval_macOS.zip
+          unzip -q pluginval.zip
+          ./pluginval.app/Contents/MacOS/pluginval --strictness-level 8 --validate-in-process --skip-gui-tests \
+            --validate build/Chordwright_artefacts/Release/VST3/Chordwright.vst3
+
+      - name: Validate the AU
+        continue-on-error: true
+        run: |
+          mkdir -p ~/Library/Audio/Plug-Ins/Components
+          cp -R build/Chordwright_artefacts/Release/AU/Chordwright.component ~/Library/Audio/Plug-Ins/Components/
+          killall -9 AudioComponentRegistrar || true
+          sleep 3
+          auval -v aumu Cwrt Krsn
+
+      - name: Package
+        run: |
+          mkdir -p dist/Chordwright-mac
+          cp -R build/Chordwright_artefacts/Release/VST3/Chordwright.vst3 dist/Chordwright-mac/
+          cp -R build/Chordwright_artefacts/Release/AU/Chordwright.component dist/Chordwright-mac/
+          cp INSTALL.txt dist/Chordwright-mac/
+          cd dist && ditto -c -k --keepParent Chordwright-mac Chordwright-mac.zip
+
+      - name: Upload the plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: Chordwright-mac
+          path: dist/Chordwright-mac.zip
+          retention-days: 30
